@@ -3,10 +3,10 @@ version: 0.2
 env:
   variables:
     AWS_REGION: "us-east-1"
-    ECR_REPO_URI: "123456789012.dkr.ecr.us-east-1.amazonaws.com/your-repo-name"
-    ECS_CLUSTER: "your-ecs-cluster-name"
-    ECS_SERVICE: "your-ecs-service-name"
-    CONTAINER_NAME: "your-container-name"
+    ECR_REPO_URI: "https://us-east-1.console.aws.amazon.com/ecr/repositories/private/621753709886/frontend"
+    ECS_CLUSTER: "DevCluster"
+    ECS_SERVICE: "frontendcontainer-service-os51c8fu"
+    CONTAINER_NAME: "frontend"
 
 phases:
   install:
