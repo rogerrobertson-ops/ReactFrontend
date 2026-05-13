@@ -1,45 +1,24 @@
 version: 0.2
 
-env:
-  variables:
-    AWS_REGION: "us-east-1"
-    ECR_REPO_URI: "https://us-east-1.console.aws.amazon.com/ecr/repositories/private/621753709886/frontend"
-    ECS_CLUSTER: "DevCluster"
-    ECS_SERVICE: "frontendcontainer-service-os51c8fu"
-    CONTAINER_NAME: "frontend"
-
 phases:
-  install:
-    runtime-versions:
-      nodejs: 20
-    commands:
-      - echo Installing API dependencies...
-      - cd api && npm install && cd ..
-      - echo Installing Client dependencies...
-      - cd client && npm install && cd ..
-
   pre_build:
     commands:
-      - echo Building React client...
-      - cd client && npm run build && cd ..
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO_URI
-      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-
+      - echo Logging in to DockerHub...
+      - docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASS
+      - REPOSITORY_URI="docker.io/rogerrobertson-ops/ReactFrontend"
+      - CONTAINER_NAME="frontend"
+      - IMAGE_TAG="latest"
   build:
     commands:
-      - echo Building Docker image...
-      - docker build -t $ECR_REPO_URI:$IMAGE_TAG .
-      - docker tag $ECR_REPO_URI:$IMAGE_TAG $ECR_REPO_URI:latest
-
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
   post_build:
     commands:
-      - echo Pushing Docker image to ECR...
-      - docker push $ECR_REPO_URI:$IMAGE_TAG
-      - docker push $ECR_REPO_URI:latest
-      - echo Writing imagedefinitions.json...
-      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $ECR_REPO_URI:$IMAGE_TAG > imagedefinitions.json
-
+      - echo Build completed on `date`
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"'$CONTAINER_NAME'","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > builddefinition.json
 artifacts:
-  files:
-    - imagedefinitions.json
+    files: builddefinition.json
+    
